@@ -1,4 +1,5 @@
 import { ErrorRequestHandler } from 'express';
+import { ZodError } from 'zod';
 import AppError from '../utils/AppError';
 import config from '../config/config';
 
@@ -7,7 +8,16 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   let message = 'Something went wrong!';
   let errorMessages: any[] = [];
 
-  if (err instanceof AppError) {
+  if (err instanceof ZodError) {
+    statusCode = 400;
+    message = 'Validation Error';
+    errorMessages = err.issues.map((issue) => {
+      return {
+        path: issue.path[issue.path.length - 1],
+        message: issue.message,
+      };
+    });
+  } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
     errorMessages = err.message ? [{ path: '', message: err.message }] : [];
