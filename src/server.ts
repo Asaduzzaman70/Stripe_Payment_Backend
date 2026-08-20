@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import app from './app';
 import config from './config/config';
 import connectDB from './config/db';
@@ -9,7 +8,17 @@ async function bootstrap() {
   try {
     await connectDB();
     server = app.listen(config.port, () => {
-      console.log(`Server running on port ${config.port}`);
+      console.log(
+        JSON.stringify(
+          {
+            status: '🚀 Server started successfully',
+            serverUrl: `http://localhost:${config.port}`,
+            swaggerDocs: `http://localhost:${config.port}/api-docs`,
+          },
+          null,
+          2
+        )
+      );
     });
   } catch (err) {
     console.error('Failed to start server:', err);

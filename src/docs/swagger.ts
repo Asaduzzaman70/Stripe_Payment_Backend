@@ -1,4 +1,4 @@
-import { userPaths } from './user/user.swagger';
+import userPaths from './user/user.swagger.json';
 
 const swaggerSpec = {
   openapi: '3.0.0',
