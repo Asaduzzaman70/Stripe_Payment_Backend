@@ -93,7 +93,51 @@ const createCheckoutSession = async (payload: {
   }
 };
 
+const handleWebhook = async (rawBody: Buffer, signature: string) => {
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      config.stripe_webhook_secret as string
+    );
+  } catch (err: any) {
+    throw new AppError(400, `Webhook Error: ${err.message}`);
+  }
+  
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await Payment.findOneAndUpdate(
+        { transactionId: session.id },
+        { status: 'succeeded' }
+      );
+      break;
+    }
+    case 'payment_intent.succeeded': {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      await Payment.findOneAndUpdate(
+        { transactionId: paymentIntent.id },
+        { status: 'succeeded' }
+      );
+      break;
+    }
+    case 'payment_intent.payment_failed': {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      await Payment.findOneAndUpdate(
+        { transactionId: paymentIntent.id },
+        { status: 'failed' }
+      );
+      break;
+    }
+    default:
+      console.log(`Unhandled stripe event type: ${event.type}`);
+  }
+};
+
 export const PaymentService = {
   createPaymentIntent,
   createCheckoutSession,
+  handleWebhook,
 };

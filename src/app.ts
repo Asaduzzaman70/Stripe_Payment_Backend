@@ -9,7 +9,13 @@ import globalErrorHandler from './middlewares/errorHandler';
 const app: Application = express();
 
 // Parsers
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(cors());
 
 // Swagger Docs

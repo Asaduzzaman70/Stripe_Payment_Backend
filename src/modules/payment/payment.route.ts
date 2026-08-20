@@ -32,4 +32,6 @@ router.post(
   PaymentController.createCheckoutSession
 );
 
+router.post('/webhook', PaymentController.handleWebhook);
+
 export const PaymentRoutes = router;

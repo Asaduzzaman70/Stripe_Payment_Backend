@@ -9,4 +9,5 @@ export default {
   database_url: process.env.DATABASE_URL,
   jwt_secret: process.env.JWT_SECRET,
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
+  stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
 };
