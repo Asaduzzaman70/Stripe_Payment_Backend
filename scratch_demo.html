@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stripe Checkout Demo</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
+    <h2>Starting Payment Flow...</h2>
+    <script>
+        fetch('http://localhost:5000/api/v1/payments/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: 99,
+                currency: 'usd',
+                productName: 'Pro Developer Plan',
+                userEmail: 'dev@example.com',
+                successUrl: 'http://localhost:5000/api-docs',
+                cancelUrl: 'http://localhost:5000/api-docs'
+            })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d?.data?.url) {
+                window.location.href = d.data.url;
+            } else {
+                document.body.innerHTML = '<h2>Error creating session</h2>';
+            }
+        });
+    </script>
+</body>
+</html>

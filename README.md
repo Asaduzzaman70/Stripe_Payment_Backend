@@ -15,6 +15,9 @@ A robust, production-ready backend application for handling Stripe payments, bui
 
 Here is a visual representation of how the Stripe payment process flows from the frontend to the backend, Stripe API, and Database.
 
+### Live Demo (Animation)
+![Stripe Checkout Flow Demo](./public/stripe_demo.webp)
+
 ```mermaid
 sequenceDiagram
     participant User as User (Browser)
