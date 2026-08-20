@@ -81,7 +81,7 @@ const createCheckoutSession = async (payload: {
       userId: payload.userId,
       transactionId: session.id, // We store session id as transaction id initially
       status: 'pending',
-    });  
+    });
 
     return {
       url: session.url,
