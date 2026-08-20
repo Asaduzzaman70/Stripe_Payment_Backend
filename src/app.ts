@@ -16,9 +16,11 @@ app.use(cors());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 import { UserRoutes } from './modules/user/user.route';
+import { PaymentRoutes } from './modules/payment/payment.route';
 
 // Application Routes
 app.use('/api/v1/users', UserRoutes);
+app.use('/api/v1/payments', PaymentRoutes);
 
 // Root Route
 app.get('/', (req: Request, res: Response) => {

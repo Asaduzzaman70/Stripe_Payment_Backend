@@ -1,4 +1,5 @@
 import userPaths from './user/user.swagger.json';
+import paymentPaths from './payment/payment.swagger.json';
 
 const swaggerSpec = {
   openapi: '3.0.0',
@@ -32,9 +33,14 @@ const swaggerSpec = {
       name: 'Users',
       description: 'User management',
     },
+    {
+      name: 'Payments',
+      description: 'Stripe Payment Processing',
+    },
   ],
   paths: {
     ...userPaths,
+    ...paymentPaths,
   },
 };
 
