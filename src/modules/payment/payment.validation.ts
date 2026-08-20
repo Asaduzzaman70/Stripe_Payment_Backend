@@ -9,6 +9,19 @@ const createPaymentIntentValidationSchema = z.object({
   }),
 });
 
+const createCheckoutSessionValidationSchema = z.object({
+  body: z.object({
+    amount: z.number().positive('Amount must be a positive number'),
+    currency: z.string().default('usd'),
+    productName: z.string().min(1, 'Product name is required'),
+    userEmail: z.string().email('Invalid email format'),
+    userId: z.string().optional(),
+    successUrl: z.string().url('Invalid success URL'),
+    cancelUrl: z.string().url('Invalid cancel URL'),
+  }),
+});
+
 export const PaymentValidation = {
   createPaymentIntentValidationSchema,
+  createCheckoutSessionValidationSchema,
 };

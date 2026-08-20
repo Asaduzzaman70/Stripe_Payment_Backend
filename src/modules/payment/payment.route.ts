@@ -26,4 +26,10 @@ router.post(
   PaymentController.createPaymentIntent
 );
 
+router.post(
+  '/create-checkout-session',
+  validateRequest(PaymentValidation.createCheckoutSessionValidationSchema),
+  PaymentController.createCheckoutSession
+);
+
 export const PaymentRoutes = router;

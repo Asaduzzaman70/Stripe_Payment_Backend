@@ -14,6 +14,18 @@ const createPaymentIntent = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createCheckoutSession = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.createCheckoutSession(req.body);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Checkout Session created successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPaymentIntent,
+  createCheckoutSession,
 };

@@ -43,6 +43,57 @@ const createPaymentIntent = async (payload: {
   }
 };
 
+const createCheckoutSession = async (payload: {
+  amount: number;
+  currency: string;
+  productName: string;
+  userEmail: string;
+  userId?: string;
+  successUrl: string;
+  cancelUrl: string;
+}) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      customer_email: payload.userEmail,
+      success_url: payload.successUrl,
+      cancel_url: payload.cancelUrl,
+      line_items: [
+        {
+          price_data: {
+            currency: payload.currency,
+            product_data: {
+              name: payload.productName,
+            },
+            unit_amount: Math.round(payload.amount * 100), // convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+    }); 
+
+    // Save initial pending payment record to the database
+    const paymentRecord = await Payment.create({
+      amount: payload.amount,
+      currency: payload.currency,
+      userEmail: payload.userEmail,
+      userId: payload.userId,
+      transactionId: session.id, // We store session id as transaction id initially
+      status: 'pending',
+    });  
+
+    return {
+      url: session.url,
+      sessionId: session.id,
+      paymentRecordId: paymentRecord._id,
+    };
+  } catch (error: any) {
+    throw new AppError(500, error.message || 'Failed to create checkout session');
+  }
+};
+
 export const PaymentService = {
   createPaymentIntent,
+  createCheckoutSession,
 };
