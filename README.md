@@ -11,6 +11,38 @@ A robust, production-ready backend application for handling Stripe payments, bui
 - **Validation**: Strict payload validation using Zod.
 - **Modular Architecture**: Clean, scalable, and maintainable folder structure.
 
+## Payment Workflow
+
+Here is a visual representation of how the Stripe payment process flows from the frontend to the backend, Stripe API, and Database.
+
+```mermaid
+sequenceDiagram
+    participant User as User (Browser)
+    participant Client as Frontend App
+    participant Server as Node.js Backend
+    participant Stripe as Stripe API
+    participant DB as MongoDB
+
+    Note over User,DB: 1. Checkout Session Creation
+    User->>Client: Clicks "Pay Now"
+    Client->>Server: POST /api/v1/payments/create-checkout-session
+    Server->>Stripe: Create Checkout Session
+    Stripe-->>Server: Returns Session URL & ID
+    Server->>DB: Save Payment (status: pending)
+    Server-->>Client: Send Checkout URL
+    Client-->>User: Redirect to Stripe Checkout
+
+    Note over User,DB: 2. Payment Processing
+    User->>Stripe: Enters Card Details & Pays
+    Stripe-->>User: Redirect to Success URL
+
+    Note over User,DB: 3. Background Webhook Verification
+    Stripe->>Server: POST /api/v1/payments/webhook (checkout.session.completed)
+    Server->>Server: Verify Webhook Signature
+    Server->>DB: Update Payment (status: succeeded)
+    Server-->>Stripe: 200 OK
+```
+
 ## Tech Stack
 
 - **Runtime Environment:** Node.js
