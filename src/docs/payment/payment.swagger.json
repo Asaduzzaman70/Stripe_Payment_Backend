@@ -129,5 +129,80 @@
         }
       }
     }
+  },
+  "/api/v1/payments/create-connect-account": {
+    "post": {
+      "summary": "Create or Retrieve Stripe Connect Express Account & Onboarding Link",
+      "description": "Automatically extracts user ID and email from Authorization Bearer JWT token.",
+      "tags": ["Payments"],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": false,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refreshUrl": { "type": "string", "example": "http://localhost:3000/stripe/refresh" },
+                "returnUrl": { "type": "string", "example": "http://localhost:3000/stripe/return" }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Stripe Connect onboarding link generated successfully",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": true },
+                  "statusCode": { "type": "number", "example": 200 },
+                  "message": { "type": "string", "example": "Stripe Connect onboarding link generated successfully" },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "url": { "type": "string", "example": "https://connect.stripe.com/setup/s/..." },
+                      "stripeAccountId": { "type": "string", "example": "acct_1..." }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": { "description": "Validation Error" },
+        "404": { "description": "User not found" }
+      }
+    }
+  },
+  "/api/v1/payments/connect-account-status/{accountId}": {
+    "get": {
+      "summary": "Get Stripe Connect Express Account Status & Capabilities",
+      "tags": ["Payments"],
+      "parameters": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+          "description": "Stripe Connect Account ID (e.g., acct_1...)"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Stripe Connect account status retrieved successfully"
+        },
+        "500": {
+          "description": "Failed to retrieve account details"
+        }
+      }
+    }
   }
 }

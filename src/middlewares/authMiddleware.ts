@@ -5,6 +5,7 @@ import AppError from '../utils/AppError';
 
 interface JwtPayload {
   userId: string;
+  email?: string;
   role: string;
 }
 

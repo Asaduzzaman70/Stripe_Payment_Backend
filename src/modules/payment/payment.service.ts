@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import config from '../../config/config';
 import { Payment } from './payment.model';
+import { User } from '../user/user.model';
 import AppError from '../../utils/AppError';
 
 // Initialize stripe instance
@@ -93,6 +94,76 @@ const createCheckoutSession = async (payload: {
   }
 };
 
+const createConnectAccount = async (payload: {
+  userId?: string;
+  email?: string;
+  refreshUrl?: string;
+  returnUrl?: string;
+}) => {
+  try {
+    let user = null;
+    if (payload.userId) {
+      user = await User.findById(payload.userId);
+    } else if (payload.email) {
+      user = await User.findOne({ email: payload.email.toLowerCase() });
+    }
+
+    if (!user) {
+      throw new AppError(404, 'User not found to connect Stripe account');
+    }
+
+    let stripeAccountId = user.stripeAccountId;
+
+    // If user does not have a connected Stripe account yet, create one
+    if (!stripeAccountId) {
+      const account = await stripe.accounts.create({
+        type: 'express',
+        email: user.email,
+      });
+
+      stripeAccountId = account.id;
+
+      await User.findByIdAndUpdate(user._id, {
+        stripeAccountId: account.id,
+      });
+    }
+
+    // Create Account Onboarding Link
+    const accountLink = await stripe.accountLinks.create({
+      account: stripeAccountId,
+      refresh_url: payload.refreshUrl || config.stripe_refresh_url,
+      return_url: payload.returnUrl || config.stripe_return_url,
+      type: 'account_onboarding',
+    });
+
+    return {
+      url: accountLink.url,
+      stripeAccountId,
+    };
+  } catch (error: any) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(500, error.message || 'Failed to create Stripe Connect onboarding link');
+  }
+};
+
+const getConnectAccountStatus = async (stripeAccountId: string) => {
+  try {
+    const account = await stripe.accounts.retrieve(stripeAccountId);
+    return {
+      id: account.id,
+      email: account.email,
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      detailsSubmitted: account.details_submitted,
+      requirements: account.requirements,
+    };
+  } catch (error: any) {
+    throw new AppError(500, error.message || 'Failed to retrieve Stripe Connect account details');
+  }
+};
+
 const handleWebhook = async (rawBody: Buffer, signature: string) => {
   let event: Stripe.Event;
 
@@ -131,6 +202,11 @@ const handleWebhook = async (rawBody: Buffer, signature: string) => {
       );
       break;
     }
+    case 'account.updated': {
+      const account = event.data.object as Stripe.Account;
+      console.log(`Stripe Connect account updated: ${account.id}, details_submitted: ${account.details_submitted}`);
+      break;
+    }
     default:
       console.log(`Unhandled stripe event type: ${event.type}`);
   }
@@ -139,5 +215,7 @@ const handleWebhook = async (rawBody: Buffer, signature: string) => {
 export const PaymentService = {
   createPaymentIntent,
   createCheckoutSession,
+  createConnectAccount,
+  getConnectAccountStatus,
   handleWebhook,
 };

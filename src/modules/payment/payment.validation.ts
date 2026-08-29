@@ -21,7 +21,17 @@ const createCheckoutSessionValidationSchema = z.object({
   }),
 });
 
+const createConnectAccountValidationSchema = z.object({
+  body: z.object({
+    userId: z.string().optional(),
+    email: z.string().email('Invalid email format').optional(),
+    refreshUrl: z.string().url('Invalid refresh URL').optional(),
+    returnUrl: z.string().url('Invalid return URL').optional(),
+  }),
+});
+
 export const PaymentValidation = {
   createPaymentIntentValidationSchema,
   createCheckoutSessionValidationSchema,
+  createConnectAccountValidationSchema,
 };

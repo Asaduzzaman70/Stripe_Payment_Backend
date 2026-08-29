@@ -39,8 +39,40 @@ const handleWebhook = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({ received: true });
 });
 
+const createConnectAccount = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.userId || req.body.userId;
+  const email = req.user?.email || req.body.email;
+
+  const result = await PaymentService.createConnectAccount({
+    ...req.body,
+    userId,
+    email,
+  });
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Stripe Connect onboarding link generated successfully',
+    data: result,
+  });
+});
+
+const getConnectAccountStatus = catchAsync(async (req: Request, res: Response) => {
+  const { accountId } = req.params;
+  const result = await PaymentService.getConnectAccountStatus(accountId as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Stripe Connect account status retrieved successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPaymentIntent,
   createCheckoutSession,
+  createConnectAccount,
+  getConnectAccountStatus,
   handleWebhook,
 };

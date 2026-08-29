@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { PaymentController } from './payment.controller';
 import { PaymentValidation } from './payment.validation';
+import { authMiddleware } from '../../middlewares/authMiddleware';
 
 const router = express.Router();
 
@@ -30,6 +31,25 @@ router.post(
   '/create-checkout-session',
   validateRequest(PaymentValidation.createCheckoutSessionValidationSchema),
   PaymentController.createCheckoutSession
+);
+
+router.post(
+  '/create-connect-account',
+  authMiddleware('user', 'admin'),
+  validateRequest(PaymentValidation.createConnectAccountValidationSchema),
+  PaymentController.createConnectAccount
+);
+
+router.post(
+  '/connect-onboarding',
+  authMiddleware('user', 'admin'),
+  validateRequest(PaymentValidation.createConnectAccountValidationSchema),
+  PaymentController.createConnectAccount
+);
+
+router.get(
+  '/connect-account-status/:accountId',
+  PaymentController.getConnectAccountStatus
 );
 
 router.post('/webhook', PaymentController.handleWebhook);

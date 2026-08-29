@@ -4,6 +4,7 @@ export interface IUser {
   email: string;
   password?: string;
   role: 'user' | 'admin';
+  stripeAccountId?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
