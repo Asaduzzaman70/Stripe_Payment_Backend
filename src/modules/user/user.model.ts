@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { IUser } from './user.interface';
+import config from '../../config/config';
 
 const userSchema = new Schema<IUser>(
   {
@@ -11,10 +13,13 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
       required: true,
+      select: false,
     },
     role: {
       type: String,
@@ -26,6 +31,17 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
   }
 );
+
+// Pre-save hook to hash password before saving
+userSchema.pre('save', async function () {
+  const user = this;
+  if (user.isModified('password') && user.password) {
+    user.password = await bcrypt.hash(
+      user.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
+});
 
 // Remove password from JSON output
 userSchema.methods.toJSON = function () {

@@ -26,6 +26,25 @@ router.post(
   UserController.createUser
 );
 
+router.post(
+  '/register',
+  validateRequest(UserValidation.createUserValidationSchema),
+  UserController.createUser
+);
+
+router.post(
+  '/create-user',
+  validateRequest(UserValidation.createUserValidationSchema),
+  UserController.createUser
+);
+
+router.post(
+  '/login',
+  validateRequest(UserValidation.loginUserValidationSchema),
+  UserController.loginUser
+);
+
 router.get('/', UserController.getAllUsers);
+router.get('/:id', UserController.getSingleUser);
 
 export const UserRoutes = router;

@@ -14,6 +14,17 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.loginUser(req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User logged in successfully',
+    data: result,
+  });
+});
+
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.getAllUsersFromDB();
 
@@ -25,7 +36,21 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getSingleUser = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.getSingleUserFromDB(id as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User retrieved successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
+  loginUser,
   getAllUsers,
+  getSingleUser,
 };

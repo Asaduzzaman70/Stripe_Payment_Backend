@@ -9,6 +9,14 @@ const createUserValidationSchema = z.object({
   }),
 });
 
+const loginUserValidationSchema = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email format'),
+    password: z.string().min(1, 'Password is required'),
+  }),
+});
+
 export const UserValidation = {
   createUserValidationSchema,
+  loginUserValidationSchema,
 };
