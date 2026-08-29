@@ -53,6 +53,21 @@ const createCheckoutSession = async (payload: {
   successUrl: string;
   cancelUrl: string;
 }) => {
+
+  const amountInCents = Math.round(payload.amount * 100);
+
+  // Product creation is optional for Checkout Sessions, but can be used to define the product
+  const product = await stripe.products.create({
+    name: payload.productName,
+  });
+
+  // Create a price for the product with the calculated amount
+  const price = await stripe.prices.create({
+    product: product.id,
+    unit_amount: amountInCents,
+    currency: payload.currency,
+  });
+
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -62,13 +77,7 @@ const createCheckoutSession = async (payload: {
       cancel_url: payload.cancelUrl,
       line_items: [
         {
-          price_data: {
-            currency: payload.currency,
-            product_data: {
-              name: payload.productName,
-            },
-            unit_amount: Math.round(payload.amount * 100), // convert to cents
-          },
+          price: price.id,  // Use the created price ID
           quantity: 1,
         },
       ],
