@@ -69,10 +69,30 @@ const getConnectAccountStatus = catchAsync(async (req: Request, res: Response) =
   });
 });
 
+const createUserToUserCheckoutSession = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.userId || req.body.userId;
+  const userEmail = req.user?.email || req.body.userEmail || req.body.customerEmail;
+
+  const result = await PaymentService.createUserToUserCheckoutSession({
+    ...req.body,
+    userId,
+    userEmail,
+    customerEmail: userEmail,
+  });
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'User-to-user Checkout Session created successfully',
+    data: result,
+  });
+});
+
 export const PaymentController = {
   createPaymentIntent,
   createCheckoutSession,
   createConnectAccount,
   getConnectAccountStatus,
+  createUserToUserCheckoutSession,
   handleWebhook,
 };

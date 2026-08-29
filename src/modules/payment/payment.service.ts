@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import config from '../../config/config';
 import { Payment } from './payment.model';
 import { User } from '../user/user.model';
+import { IUserToUserCheckoutPayload } from './payment.interface';
 import AppError from '../../utils/AppError';
 
 // Initialize stripe instance
@@ -128,6 +129,10 @@ const createConnectAccount = async (payload: {
       const account = await stripe.accounts.create({
         type: 'express',
         email: user.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
       });
 
       stripeAccountId = account.id;
@@ -221,10 +226,94 @@ const handleWebhook = async (rawBody: Buffer, signature: string) => {
   }
 };
 
+const createUserToUserCheckoutSession = async (payload: IUserToUserCheckoutPayload) => {
+  try {
+    let stripeAccountId = payload.stripeAccountId;
+    let recipientDbId: any = undefined;
+
+    if (!stripeAccountId) {
+      let recipient = null;
+      if (payload.recipientId) {
+        recipient = await User.findById(payload.recipientId);
+      } else if (payload.recipientEmail) {
+        recipient = await User.findOne({ email: payload.recipientEmail.toLowerCase() });
+      }
+
+      if (!recipient) {
+        throw new AppError(404, 'Recipient user not found');
+      }
+
+      if (!recipient.stripeAccountId) {
+        throw new AppError(400, 'Recipient user does not have a connected Stripe account');
+      }
+
+      stripeAccountId = recipient.stripeAccountId;
+      recipientDbId = recipient._id;
+    }
+
+    const amountInCents = Math.round(payload.amount * 100);
+
+    const paymentIntentData: any = {
+      transfer_data: {
+        destination: stripeAccountId,
+      },
+    };
+
+    if (payload.applicationFee && payload.applicationFee > 0) {
+      paymentIntentData.application_fee_amount = Math.round(payload.applicationFee * 100);
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: payload.customerEmail || payload.userEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: payload.currency || 'usd',
+            product_data: {
+              name: payload.title || payload.productName || 'Payment Transfer',
+            },
+            unit_amount: amountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+      payment_intent_data: paymentIntentData,
+      success_url: payload.successUrl || `${config.frontend_url}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: payload.cancelUrl || `${config.frontend_url}/payment/cancel`,
+    });
+
+    const paymentRecord = await Payment.create({
+      amount: payload.amount,
+      currency: payload.currency || 'usd',
+      userEmail: payload.customerEmail || payload.userEmail || 'customer@example.com',
+      userId: payload.userId,
+      recipientId: recipientDbId,
+      recipientStripeAccountId: stripeAccountId,
+      transactionId: session.id,
+      status: 'pending',
+    });
+
+    return {
+      url: session.url,
+      sessionId: session.id,
+      paymentRecordId: paymentRecord._id,
+      destinationStripeAccountId: stripeAccountId,
+    };
+  } catch (error: any) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(500, error.message || 'Failed to create user-to-user checkout session');
+  }
+};
+
 export const PaymentService = {
   createPaymentIntent,
   createCheckoutSession,
   createConnectAccount,
   getConnectAccountStatus,
+  createUserToUserCheckoutSession,
   handleWebhook,
 };

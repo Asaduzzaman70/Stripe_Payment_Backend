@@ -204,5 +204,68 @@
         }
       }
     }
+  },
+  "/api/v1/payments/user-to-user-checkout-session": {
+    "post": {
+      "summary": "User → User: Create Stripe Checkout Session directly transferring funds to recipient's connected Stripe account",
+      "description": "Creates a Stripe Checkout Session with destination transfer (`payment_intent_data.transfer_data.destination`). Customer information is automatically populated from the Authorization Bearer Token if authenticated.",
+      "tags": ["Payments"],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["amount"],
+              "properties": {
+                "amount": { "type": "number", "example": 10, "description": "Payment amount (e.g. 10 USD)" },
+                "currency": { "type": "string", "example": "usd", "default": "usd" },
+                "title": { "type": "string", "example": "Event Ticket / Service Fee" },
+                "recipientId": { "type": "string", "example": "60d0fe4f5311236168a109ca", "description": "MongoDB ID of recipient user" },
+                "recipientEmail": { "type": "string", "example": "recipient@example.com" },
+                "stripeAccountId": { "type": "string", "example": "acct_1...", "description": "Recipient's Stripe Connect Account ID" },
+                "applicationFee": { "type": "number", "example": 1, "description": "Optional platform fee cut" },
+                "customerEmail": { "type": "string", "example": "customer@example.com" },
+                "successUrl": { "type": "string", "example": "http://localhost:3000/payment/success" },
+                "cancelUrl": { "type": "string", "example": "http://localhost:3000/payment/cancel" }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "User-to-user Checkout Session created successfully",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "success": { "type": "boolean", "example": true },
+                  "statusCode": { "type": "number", "example": 201 },
+                  "message": { "type": "string", "example": "User-to-user Checkout Session created successfully" },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "url": { "type": "string", "example": "https://checkout.stripe.com/c/pay/cs_test_..." },
+                      "sessionId": { "type": "string", "example": "cs_test_..." },
+                      "paymentRecordId": { "type": "string", "example": "60d0fe4f5311236168a109cb" },
+                      "destinationStripeAccountId": { "type": "string", "example": "acct_1..." }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": { "description": "Validation Error or Recipient user does not have a connected Stripe account" },
+        "404": { "description": "Recipient user not found" }
+      }
+    }
   }
 }

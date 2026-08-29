@@ -30,8 +30,27 @@ const createConnectAccountValidationSchema = z.object({
   }),
 });
 
+const createUserToUserCheckoutSessionValidationSchema = z.object({
+  body: z.object({
+    amount: z.number().positive('Amount must be a positive number'),
+    currency: z.string().default('usd').optional(),
+    title: z.string().optional(),
+    productName: z.string().optional(),
+    recipientId: z.string().optional(),
+    recipientEmail: z.string().email('Invalid email format').optional(),
+    stripeAccountId: z.string().optional(),
+    applicationFee: z.number().nonnegative().optional(),
+    customerEmail: z.string().email('Invalid email format').optional(),
+    userEmail: z.string().email('Invalid email format').optional(),
+    userId: z.string().optional(),
+    successUrl: z.string().url('Invalid success URL').optional(),
+    cancelUrl: z.string().url('Invalid cancel URL').optional(),
+  }),
+});
+
 export const PaymentValidation = {
   createPaymentIntentValidationSchema,
   createCheckoutSessionValidationSchema,
   createConnectAccountValidationSchema,
+  createUserToUserCheckoutSessionValidationSchema,
 };
