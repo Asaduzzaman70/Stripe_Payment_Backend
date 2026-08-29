@@ -52,6 +52,30 @@ router.get(
   PaymentController.getConnectAccountStatus
 );
 
+router.post(
+  '/user-to-user-checkout-session',
+  (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization) {
+      return authMiddleware('user', 'admin')(req, res, next);
+    }
+    next();
+  },
+  validateRequest(PaymentValidation.createUserToUserCheckoutSessionValidationSchema),
+  PaymentController.createUserToUserCheckoutSession
+);
+
+router.post(
+  '/create-destination-checkout-session',
+  (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization) {
+      return authMiddleware('user', 'admin')(req, res, next);
+    }
+    next();
+  },
+  validateRequest(PaymentValidation.createUserToUserCheckoutSessionValidationSchema),
+  PaymentController.createUserToUserCheckoutSession
+);
+
 router.post('/webhook', PaymentController.handleWebhook);
 
 export const PaymentRoutes = router;

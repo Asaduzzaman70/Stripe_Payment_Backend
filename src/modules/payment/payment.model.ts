@@ -28,6 +28,13 @@ const paymentSchema = new Schema<IPayment>(
       type: String,
       required: true,
     },
+    recipientId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    recipientStripeAccountId: {
+      type: String,
+    },
   },
   {
     timestamps: true,
